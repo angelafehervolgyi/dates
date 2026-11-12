@@ -1,0 +1,605 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Date Challenge</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,
+    #667eea, #764ba2, #f093fb, #ffb347);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.game {
+  width: 100%;
+  max-width: 720px;
+  background: white;
+  border-radius: 25px;
+  padding: 30px;
+  box-shadow: 0 15px 40px #0003;
+  text-align: center;
+}
+
+h1 {
+  color: #673ab7;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  color: #777;
+}
+
+.progress {
+  height: 14px;
+  background: #e9e3fa;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 25px 0;
+}
+
+.bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg,
+    #00c9a7, #7c3aed);
+  transition: width .3s;
+}
+
+.tag {
+  display: inline-block;
+  background: #eee5ff;
+  color: #6536cb;
+  padding: 9px 18px;
+  border-radius: 30px;
+  font-weight: bold;
+}
+
+.question {
+  font-size: 36px;
+  margin: 25px 0;
+  font-weight: bold;
+  color: #333;
+}
+
+.instruction {
+  font-size: 18px;
+  color: #666;
+  margin-top: 20px;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 14px;
+  padding: 15px;
+  font-size: 17px;
+  font-weight: bold;
+  transition: .2s;
+}
+
+.option {
+  background: #f0ecff;
+  color: #44278b;
+  border: 2px solid transparent;
+}
+
+.option:hover:not(:disabled) {
+  background: #e1d6ff;
+  transform: translateY(-2px);
+}
+
+.option:disabled {
+  cursor: default;
+}
+
+.correct {
+  background: #d1fae5 !important;
+  border-color: #16a34a;
+  color: #166534;
+}
+
+.wrong {
+  background: #fee2e2 !important;
+  border-color: #dc2626;
+  color: #991b1b;
+}
+
+.feedback {
+  min-height: 75px;
+  margin-top: 18px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.good {
+  color: #16a34a;
+}
+
+.bad {
+  color: #dc2626;
+}
+
+.next {
+  background: #6639d5;
+  color: white;
+  padding: 15px 35px;
+}
+
+.next:hover {
+  background: #4c25ad;
+}
+
+.next:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.score {
+  font-size: 65px;
+  color: #6639d5;
+  font-weight: bold;
+}
+
+.hidden {
+  display: none;
+}
+
+.small {
+  color: #777;
+  font-size: 15px;
+  margin-top: 10px;
+}
+
+@media(max-width:500px) {
+  .game {
+    padding: 20px;
+  }
+
+  .question {
+    font-size: 30px;
+  }
+
+  .options {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="game">
+
+  <h1>📅 Date Challenge!</h1>
+  <p class="subtitle">
+    English Dates • Grammar Game
+  </p>
+
+  <div id="quiz">
+
+    <p id="counter">Question 1 of 10</p>
+
+    <div class="progress">
+      <div class="bar" id="bar"></div>
+    </div>
+
+    <span class="tag">English Dates</span>
+
+    <p class="instruction">
+      How do you say this date in English?
+    </p>
+
+    <div class="question" id="question"></div>
+
+    <div class="options" id="options"></div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <button class="next" id="next"
+      onclick="nextQuestion()" disabled>
+      Next Question ➜
+    </button>
+
+  </div>
+
+  <div id="result" class="hidden">
+
+    <h2>🏆 Mission Complete!</h2>
+
+    <div class="score" id="score"></div>
+
+    <h2 id="message"></h2>
+
+    <p>Ready for another challenge?</p>
+
+    <button class="next" onclick="startGame()">
+      🔄 Play Again
+    </button>
+
+  </div>
+
+</div>
+
+<script>
+
+// MONTHS
+
+const months = [
+  "January", "February", "March",
+  "April", "May", "June",
+  "July", "August", "September",
+  "October", "November", "December"
+];
+
+// ORDINAL NUMBERS
+
+const ordinals = [
+  "",
+  "first",
+  "second",
+  "third",
+  "fourth",
+  "fifth",
+  "sixth",
+  "seventh",
+  "eighth",
+  "ninth",
+  "tenth",
+  "eleventh",
+  "twelfth",
+  "thirteenth",
+  "fourteenth",
+  "fifteenth",
+  "sixteenth",
+  "seventeenth",
+  "eighteenth",
+  "nineteenth",
+  "twentieth",
+  "twenty-first",
+  "twenty-second",
+  "twenty-third",
+  "twenty-fourth",
+  "twenty-fifth",
+  "twenty-sixth",
+  "twenty-seventh",
+  "twenty-eighth",
+  "twenty-ninth",
+  "thirtieth",
+  "thirty-first"
+];
+
+// ORDINAL SUFFIXES
+
+function suffix(day) {
+  if (day >= 11 && day <= 13) {
+    return "th";
+  }
+
+  const last = day % 10;
+
+  if (last === 1) return "st";
+  if (last === 2) return "nd";
+  if (last === 3) return "rd";
+
+  return "th";
+}
+
+// RANDOM SHUFFLE
+
+function shuffle(array) {
+  const result = [...array];
+
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+
+    [result[i], result[j]] =
+      [result[j], result[i]];
+  }
+
+  return result;
+}
+
+// NUMBER OF DAYS IN EACH MONTH
+
+function daysInMonth(monthIndex) {
+  const days = [
+    31, 28, 31, 30, 31, 30,
+    31, 31, 30, 31, 30, 31
+  ];
+
+  return days[monthIndex];
+}
+
+// GENERATE ALL POSSIBLE DATES
+
+const allDates = [];
+
+for (let m = 0; m < 12; m++) {
+  for (let d = 1; d <= daysInMonth(m); d++) {
+    allDates.push({
+      day: d,
+      month: m
+    });
+  }
+}
+
+// GAME VARIABLES
+
+let round = [];
+let index = 0;
+let points = 0;
+let answered = false;
+let previousDates = new Set();
+
+// FORMAT CORRECT ANSWER
+
+function correctDate(date) {
+  return "the " +
+    ordinals[date.day] +
+    " of " +
+    months[date.month];
+}
+
+// GENERATE WRONG ANSWERS
+
+function makeOptions(date) {
+
+  const day = date.day;
+  const month = months[date.month];
+
+  const correct = correctDate(date);
+
+  const wrong1 =
+    "the " + day + suffix(day) + " of " + month;
+
+  const wrong2 =
+    "the " + day + " of " + month;
+
+  const wrong3 =
+    "the " + month + " of " + ordinals[day];
+
+  const wrong4 =
+    ordinals[day] + " " + month;
+
+  const wrong5 =
+    "the " + ordinals[day] + " " + month;
+
+  const wrong6 =
+    "the " + month + " " + day;
+
+  // Mix different distractors.
+  const distractors = shuffle([
+    wrong1, wrong2, wrong3,
+    wrong4, wrong5, wrong6
+  ]).filter(option => option !== correct);
+
+  return shuffle([
+    correct,
+    ...distractors.slice(0, 3)
+  ]);
+}
+
+// START A NEW GAME
+
+function startGame() {
+
+  let available = allDates.filter(date => {
+    const key = date.month + "-" + date.day;
+    return !previousDates.has(key);
+  });
+
+  if (available.length < 10) {
+    previousDates.clear();
+    available = [...allDates];
+  }
+
+  round = shuffle(available).slice(0, 10);
+
+  round.forEach(date => {
+    previousDates.add(date.month + "-" + date.day);
+  });
+
+  index = 0;
+  points = 0;
+  answered = false;
+
+  document.getElementById("quiz")
+    .classList.remove("hidden");
+
+  document.getElementById("result")
+    .classList.add("hidden");
+
+  showQuestion();
+}
+
+// SHOW QUESTION
+
+function showQuestion() {
+
+  answered = false;
+
+  const date = round[index];
+
+  document.getElementById("counter").textContent =
+    "Question " + (index + 1) + " of 10";
+
+  document.getElementById("bar").style.width =
+    (index / 10 * 100) + "%";
+
+  document.getElementById("question").textContent =
+    date.day + suffix(date.day) +
+    " " + months[date.month];
+
+  document.getElementById("feedback").innerHTML = "";
+
+  const next = document.getElementById("next");
+
+  next.disabled = true;
+
+  next.textContent =
+    index === 9
+    ? "See My Results ➜"
+    : "Next Question ➜";
+
+  const options =
+    document.getElementById("options");
+
+  options.innerHTML = "";
+
+  const choices = makeOptions(date);
+
+  choices.forEach(choice => {
+
+    const btn = document.createElement("button");
+
+    btn.className = "option";
+    btn.textContent = choice;
+
+    btn.onclick = () => checkAnswer(choice, btn);
+
+    options.appendChild(btn);
+
+  });
+}
+
+// CHECK ANSWER
+
+function checkAnswer(choice, clickedButton) {
+
+  if (answered) return;
+
+  answered = true;
+
+  const correct = correctDate(round[index]);
+
+  const feedback =
+    document.getElementById("feedback");
+
+  const buttons =
+    document.querySelectorAll(".option");
+
+  buttons.forEach(btn => {
+
+    btn.disabled = true;
+
+    if (btn.textContent === correct) {
+      btn.classList.add("correct");
+    }
+
+  });
+
+  if (choice === correct) {
+
+    points++;
+
+    clickedButton.classList.add("correct");
+
+    feedback.innerHTML =
+      '<span class="good">' +
+      '✔ Excellent! Correct answer!' +
+      '</span>';
+
+  } else {
+
+    clickedButton.classList.add("wrong");
+
+    feedback.innerHTML =
+      '<span class="bad">' +
+      '✘ Not quite!' +
+      '</span>' +
+      '<div class="small">' +
+      'Correct answer: ' +
+      correct +
+      '</div>';
+
+  }
+
+  document.getElementById("bar").style.width =
+    ((index + 1) / 10 * 100) + "%";
+
+  document.getElementById("next").disabled = false;
+}
+
+// NEXT QUESTION
+
+function nextQuestion() {
+
+  if (!answered) return;
+
+  index++;
+
+  if (index >= 10) {
+    showResults();
+  } else {
+    showQuestion();
+  }
+}
+
+// RESULTS
+
+function showResults() {
+
+  document.getElementById("quiz")
+    .classList.add("hidden");
+
+  document.getElementById("result")
+    .classList.remove("hidden");
+
+  document.getElementById("score").textContent =
+    points + " / 10";
+
+  let message = "";
+
+  if (points === 10) {
+
+    message =
+      "🌟 Perfect! You're a date superstar!";
+
+  } else if (points >= 8) {
+
+    message =
+      "🎉 Great job! Keep it up!";
+
+  } else if (points >= 6) {
+
+    message =
+      "👍 Good work! Keep practising!";
+
+  } else {
+
+    message =
+      "💪 Don't give up! Try again!";
+
+  }
+
+  document.getElementById("message").textContent =
+    message;
+}
+
+// INITIALIZE GAME
+
+startGame();
+
+</script>
+
+</body>
+</html>
